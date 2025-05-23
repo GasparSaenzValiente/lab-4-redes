@@ -10,6 +10,7 @@ using namespace omnetpp;
 class Net: public cSimpleModule {
 private:
     cOutVector delay;
+    cOutVector hopCount;
 
 public:
     Net();
@@ -32,6 +33,7 @@ Net::~Net() {
 
 void Net::initialize() {
     delay.setName("Demora de entrega");
+    hopCount.setName("Numero de saltos");
 }
 
 void Net::finish() {
@@ -44,7 +46,10 @@ void Net::handleMessage(cMessage *msg) {
 
     // If this node is the final destination, send to App
     if (pkt->getDestination() == this->getParentModule()->getIndex()) {
-        delay.record(simTime() - pkt->getCreationTime());
+        simtime_t delayTime = simTime() - pkt->getCreationTime();
+        EV<< "Delay = " <<delayTime<<endl;
+        delay.record(delayTime);
+        hopCount.record(pkt->getHopCount());
         send(msg, "toApp$o");
     }
     // If not, forward the packet to some else... to who?
