@@ -9,6 +9,7 @@ using namespace omnetpp;
 
 class Net: public cSimpleModule {
 private:
+    cOutVector delay;
 
 public:
     Net();
@@ -30,6 +31,7 @@ Net::~Net() {
 }
 
 void Net::initialize() {
+    delay.setName("Demora de entrega");
 }
 
 void Net::finish() {
@@ -42,6 +44,7 @@ void Net::handleMessage(cMessage *msg) {
 
     // If this node is the final destination, send to App
     if (pkt->getDestination() == this->getParentModule()->getIndex()) {
+        delay.record(simTime() - pkt->getCreationTime());
         send(msg, "toApp$o");
     }
     // If not, forward the packet to some else... to who?

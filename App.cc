@@ -61,6 +61,8 @@ void App::handleMessage(cMessage *msg) {
         pkt->setSource(this->getParentModule()->getIndex());
         pkt->setDestination(par("destination"));
         pkt->setHopCount(0);
+        pkt->setCreationTime(simTime());
+        EV << pkt->getCreationTime() << endl;
 
         // send to net layer
         send(pkt, "toNet$o");
