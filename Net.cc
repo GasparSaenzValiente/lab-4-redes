@@ -5,7 +5,7 @@
 #include <omnetpp.h>
 #include <packet_m.h>
 #include <distanceVector_m.h>
-#include <vector>
+#include <map>
 
 using namespace omnetpp;
 
@@ -16,11 +16,10 @@ private:
 
     int id;
     struct RoutingEntry {
-        int destination;
         int cost;
         int nextNode;
     };
-    std::vector<RoutingEntry> routingTable;
+    std::map<int, RoutingEntry> routingTable;
     int interfaces;
 
 public:
@@ -50,9 +49,11 @@ void Net::initialize() {
     this->id = this->getParentModule()->getIndex();
     this->interfaces = getParentModule()->par("interfaces").intValue();
 
-    // esta linea es como un for inicializando las #interfaces entrys de la tabla en -1, -1.
-    routingTable.resize(interfaces, RoutingEntry{-1, -1, -1});
-}
+    RoutingEntry defaultEntry = {-1, -1, -1};
+    for (int i = 0; i < this->interfaces; i++){
+        routingTable.insert({i, defaultEntry});
+    }
+
 
 void Net::finish() {
 }
@@ -65,12 +66,15 @@ void Net::sendTable(){
     int numNodes = routingTable.size();
     dv->setEntriesArraySize(numNodes);
 
-    for(int i = 0; i < numNodes; i++){
-        DistanceEntry dEntry;
-        dEntry.cost = routingTable[i].cost;
-        dEntry.destination = routingTable[i].destination;
+    int i = 0;
+    for (auto& entry : routingTable) {
+        DistanceEntry distanceE;
 
-        dv->setEntries(i, dEntry);
+        distanceE.destination = entry.first;
+        distanceE.cost = entry.second.cost;
+
+        dv->setEntries(i, distanceE);
+        i++;
     }
 
    for(int i = 0; i < interfaces; i++){
@@ -80,7 +84,30 @@ void Net::sendTable(){
 
 // func para actualizar la distance table cuando me llega una
 void Net::updateTable(DistanceVector * dv){
+    int dv_size = dv->getEntriesArraySize();
+    int senderID = dv->getSenderId();
 
+    for (int i = 0; i < dv_size; i++){
+        DistanceEntry distanceE = dv->getEntries(i);
+
+        auto it = routingTable.find(distanceE.destination);
+        if (it == routingTable.end()) // el nodo destinatario es nuevo{
+            RoutingEntry newEntry;
+            newEntry.cost = distanceE.cost + 1; // +1 por el salto de ir al noda que envio el dv
+            newEntry.nextNode = senderID;
+            routingTable[distanceE.destination] = newEntry;
+        }
+        else{ // el nodo destinatario esta en nuestra dtable, y hay que ver el minimo
+            RoutingEntry existingEntry = it->second;
+
+            // si el costo es menor hago cosas
+            if (existingEntry.cost > distanceE.cost + 1){
+                existingEntry.cost = distanceE.cost + 1;
+                existingEntry.nextNode = senderID;
+            }
+            // si no lo dejo como esta, skip if
+        }
+    }
 }
 
 
@@ -88,26 +115,31 @@ void Net::updateTable(DistanceVector * dv){
 
 void Net::handleMessage(cMessage *msg) {
 
-    // All msg (events) on net are packets
-    Packet *pkt = (Packet *) msg;
+    // msg es un PACKET
+    if (Packet *pkt = dynamic_cast<Packet*>(msg)){
 
-    // If this node is the final destination, send to App
-    if (pkt->getDestination() == id) {
-        simtime_t delayTime = simTime() - pkt->getCreationTime();
-        EV<< "Delay = " <<delayTime<<endl;
-        delay.record(delayTime);
-        hopCount.record(pkt->getHopCount());
-        send(msg, "toApp$o");
+         // If this node is the final destination, send to App
+        if (pkt->getDestination() == id) {
+            simtime_t delayTime = simTime() - pkt->getCreationTime();
+            EV<< "Delay = " <<delayTime<<endl;
+            delay.record(delayTime);
+            hopCount.record(pkt->getHopCount());
+            send(msg, "toApp$o");
+        }
+         // If not, forward the packet to some else
+         // debemos chequear la tabla para saber para donde mandarlo
+        else {
+            pkt->setHopCount(pkt->getHopCount() + 1);
+
+            msg = (cMessage *) pkt;
+            send(msg, "toLnk$o", 0);
+        }
     }
-    // If not, forward the packet to some else... to who?
-    else {
-        // We send to link interface #0, which is the
-        // one connected to the clockwise side of the ring
-        // Is this the best choice? are there others?
 
-        pkt->setHopCount(pkt->getHopCount() + 1);
-
-        msg = (cMessage *) pkt;
-        send(msg, "toLnk$o", 0);
+    // msg es un DistanceVector
+    else if (DistanceVector *dv = dynamic_cast<DistanceVector*>(msg)) {
+        updateTable(dv);
     }
+
+    // deberia haber un tipo hello despues o algo asi para saber quienes son mis vecinos?
 }
