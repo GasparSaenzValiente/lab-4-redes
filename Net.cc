@@ -6,7 +6,7 @@
 #include <packet_m.h>
 #include <distanceVector_m.h>
 #include <hello_m.h>
-#include <map>#include <limits>
+
 
 using namespace omnetpp;
 
@@ -35,6 +35,9 @@ protected:
     virtual void handleMessage(cMessage *msg);
     virtual void sendTable();
     virtual bool updateTable(DistanceVector * dv, int gate);
+    virtual void handlePacket(Packet *pkt);
+    virtual void handleDistanceVector(DistanceVector *dv);
+    virtual void handleHello(Hello *helloPkt);
 };
 
 Define_Module(Net);
@@ -51,15 +54,14 @@ void Net::initialize() {
     delay.setName("Demora de entrega");
     hopCount.setName("Numero de saltos");
     this->id = this->getParentModule()->getIndex();
-    this->interfaces = getParentModule()->par("interfaces").intValue();
+    this->interfaces = gateSize("toLnk$o");
 
-    routingTable.insert({id, {0, -1}});
-    Hello * helloPkt = new Hello("helloMsg");
-    helloPkt->setSenderID(id);
+
     for(int i = 0; i < interfaces; i++){
-        send(helloPkt->dup(), "toLnk$o", i);
+        Hello * helloPkt = new Hello("helloMsg");
+        helloPkt->setSenderID(id);
+        send(helloPkt, "toLnk$o", i);
     }
-    delete helloPkt;
 }
 
 void Net::finish() {
@@ -112,7 +114,7 @@ bool Net::updateTable(DistanceVector * dv, int gate){
             RoutingEntry existingEntry = it->second;
 
             // si el costo es menor hago cosas
-            if (existingEntry.cost > distanceE.cost + 1 || existingEntry.cost == -1){
+            if (existingEntry.cost > distanceE.cost + 1){
                 existingEntry.cost = distanceE.cost + 1;
                 existingEntry.nextNode = gate;
                 routingTable[distanceE.destination] = existingEntry;
@@ -128,10 +130,42 @@ bool Net::updateTable(DistanceVector * dv, int gate){
 
 
 void Net::handleMessage(cMessage *msg) {
-
     // msg es un PACKET
     if (Packet *pkt = dynamic_cast<Packet*>(msg)){
-        EV << "LLEGO Pkt DE LA APP" << endl;
+        handlePacket(pkt);
+    }
+    // msg es un DistanceVector
+    else if (DistanceVector *dv = dynamic_cast<DistanceVector*>(msg)) {
+        handleDistanceVector(dv);
+
+    }
+    // msg es un helloPacket
+    else if(Hello *hello = dynamic_cast<Hello*>(msg)){
+        handleHello(hello);
+    }
+}
+
+
+void Net::handleHello(Hello *hello){
+     int neighbour_gate = hello->getArrivalGate()->getIndex();
+        int senderID = hello->getSenderID();
+
+        routingTable[senderID] = {1, neighbour_gate};
+        sendTable();
+        delete hello;
+}
+
+void Net::handleDistanceVector(DistanceVector *dv){
+    int gate = dv->getArrivalGate()->getIndex();
+        bool update = updateTable(dv, gate);
+        if (update){
+            sendTable();
+        }
+        delete dv;
+}
+
+void Net::handlePacket(Packet *pkt){
+    EV << "LLEGO Pkt DE LA APP" << endl;
          // If this node is the final destination, send to App
         if (pkt->getDestination() == id) {
             EV << "PKT LLEGO A DESTINO " << endl;
@@ -139,6 +173,7 @@ void Net::handleMessage(cMessage *msg) {
             EV<< "Delay = " <<delayTime<<endl;
             delay.record(delayTime);
             hopCount.record(pkt->getHopCount());
+            cMessage *msg = (cMessage *) pkt;
             send(msg, "toApp$o");
         }
          // If not, forward the packet to some else
@@ -151,35 +186,16 @@ void Net::handleMessage(cMessage *msg) {
             if (it != routingTable.end() && it->second.nextNode != -1) {
                 EV << "DESTINATION SE ENCONTRABA EN LA ROUTING TABLE " << endl;
                 int sendTo = it->second.nextNode;
-                msg = (cMessage *) pkt;
+                cMessage *msg = (cMessage *) pkt;
                 send(msg, "toLnk$o", sendTo);
             }
             else{
                 // si no tenemos una entrada para ese que hago?
                 // lo mano en sentido horario? lo borro?
                 EV << "PACKET NO ESTABA EN RT" << endl;
+                cMessage *msg = (cMessage *) pkt;
                 send(msg, "toLnk$o", 0);
                 //delete pkt;
             }
         }
     }
-
-    // msg es un DistanceVector
-    else if (DistanceVector *dv = dynamic_cast<DistanceVector*>(msg)) {
-        int gate = msg->getArrivalGate()->getIndex();
-        bool update = updateTable(dv, gate);
-        if (update){
-            sendTable();
-        }
-        delete dv;
-
-    }
-    else if(Hello *helloPkt = dynamic_cast<Hello*>(msg)){
-        int neighbour_gate = msg->getArrivalGate()->getIndex();
-        int senderID = helloPkt->getSenderID();
-
-        routingTable[senderID] = {1, neighbour_gate};
-        sendTable();
-        delete helloPkt;
-    }
-}

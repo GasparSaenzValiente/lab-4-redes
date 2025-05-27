@@ -152,11 +152,11 @@ void doParsimUnpacking(omnetpp::cCommBuffer *, T& t)
 
 Register_Class(Hello)
 
-Hello::Hello(const char *name, short kind) : ::omnetpp::cPacket(name, kind)
+Hello::Hello(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
 {
 }
 
-Hello::Hello(const Hello& other) : ::omnetpp::cPacket(other)
+Hello::Hello(const Hello& other) : ::omnetpp::cMessage(other)
 {
     copy(other);
 }
@@ -168,7 +168,7 @@ Hello::~Hello()
 Hello& Hello::operator=(const Hello& other)
 {
     if (this == &other) return *this;
-    ::omnetpp::cPacket::operator=(other);
+    ::omnetpp::cMessage::operator=(other);
     copy(other);
     return *this;
 }
@@ -180,13 +180,13 @@ void Hello::copy(const Hello& other)
 
 void Hello::parsimPack(omnetpp::cCommBuffer *b) const
 {
-    ::omnetpp::cPacket::parsimPack(b);
+    ::omnetpp::cMessage::parsimPack(b);
     doParsimPacking(b,this->senderID);
 }
 
 void Hello::parsimUnpack(omnetpp::cCommBuffer *b)
 {
-    ::omnetpp::cPacket::parsimUnpack(b);
+    ::omnetpp::cMessage::parsimUnpack(b);
     doParsimUnpacking(b,this->senderID);
 }
 
@@ -237,7 +237,7 @@ class HelloDescriptor : public omnetpp::cClassDescriptor
 
 Register_ClassDescriptor(HelloDescriptor)
 
-HelloDescriptor::HelloDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(Hello)), "omnetpp::cPacket")
+HelloDescriptor::HelloDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(Hello)), "omnetpp::cMessage")
 {
     propertyNames = nullptr;
 }

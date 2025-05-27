@@ -20,13 +20,13 @@ class Hello;
 /**
  * Class generated from <tt>hello.msg:1</tt> by opp_msgtool.
  * <pre>
- * packet Hello
+ * message Hello
  * {
  *     int senderID;
  * }
  * </pre>
  */
-class Hello : public ::omnetpp::cPacket
+class Hello : public ::omnetpp::cMessage
 {
   protected:
     int senderID = 0;

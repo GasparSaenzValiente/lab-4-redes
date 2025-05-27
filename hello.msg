@@ -1,3 +1,3 @@
-packet Hello{
+message Hello{
   int senderID;
 }
