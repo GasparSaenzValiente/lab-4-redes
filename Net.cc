@@ -13,17 +13,20 @@ using namespace omnetpp;
 
 const int INFINITY_COST = std::numeric_limits<int>::max();
 
+struct RoutingEntry {
+        int cost;
+        int nextNode;
+};
+
+
 class Net: public cSimpleModule {
 private:
     cOutVector delay;
     cOutVector hopCount;
 
     int id;
-    struct RoutingEntry {
-        int cost;
-        int nextNode;
-    };
-    std::map<int, RoutingEntry> routingTable;
+    std::map<int, RoutingEntry> routingTable; // mapea un nodo destino al nodo vecino que tengo que reenviar
+    std::map<int, int> gateTable; // toma un nodo vecino y devuelve el gate por donde enviar
     int interfaces;
 
 public:
@@ -34,7 +37,7 @@ protected:
     virtual void finish();
     virtual void handleMessage(cMessage *msg);
     virtual void sendTable();
-    virtual bool updateTable(DistanceVector * dv, int gate);
+    virtual bool updateTable(DistanceVector * dv);
     virtual void handlePacket(Packet *pkt);
     virtual void handleDistanceVector(DistanceVector *dv);
     virtual void handleHello(Hello *helloPkt);
@@ -56,6 +59,8 @@ void Net::initialize() {
     this->id = this->getParentModule()->getIndex();
     this->interfaces = gateSize("toLnk$o");
 
+    routingTable[this->id] = {0, this->id};
+    gateTable[this->id] = -1;
 
     for(int i = 0; i < interfaces; i++){
         Hello * helloPkt = new Hello("helloMsg");
@@ -66,67 +71,6 @@ void Net::initialize() {
 
 void Net::finish() {
 }
-
-// func para enviar la distance table a nodos vecinos
-void Net::sendTable(){
-    DistanceVector * dv = new DistanceVector("dv");
-    dv->setSenderId(id);
-
-    int numNodes = routingTable.size();
-    dv->setEntriesArraySize(numNodes);
-
-    int i = 0;
-    for (auto& entry : routingTable) {
-        DistanceEntry distanceE;
-
-        distanceE.destination = entry.first;
-        distanceE.cost = entry.second.cost;
-
-        dv->setEntries(i, distanceE);
-        i++;
-    }
-
-   for(int i = 0; i < interfaces; i++){
-        send(dv->dup(), "toLnk$o", i);
-    }
-    delete dv;
-}
-
-// func para actualizar la distance table cuando me llega una
-bool Net::updateTable(DistanceVector * dv, int gate){
-    int dv_size = dv->getEntriesArraySize();
-    int senderID = dv->getSenderId();
-
-    bool update = false;
-
-    for (int i = 0; i < dv_size; i++){
-        DistanceEntry distanceE = dv->getEntries(i);
-
-        auto it = routingTable.find(distanceE.destination);
-        if (it == routingTable.end()){ // el nodo destinatario es nuevo{
-            RoutingEntry newEntry;
-            newEntry.cost = distanceE.cost + 1; // +1 por el salto de ir al noda que envio el dv
-            newEntry.nextNode = gate;
-            routingTable[distanceE.destination] = newEntry;
-            update = true;
-        }
-        else{ // el nodo destinatario esta en nuestra dtable, y hay que ver el minimo
-            RoutingEntry existingEntry = it->second;
-
-            // si el costo es menor hago cosas
-            if (existingEntry.cost > distanceE.cost + 1){
-                existingEntry.cost = distanceE.cost + 1;
-                existingEntry.nextNode = gate;
-                routingTable[distanceE.destination] = existingEntry;
-                update = true;
-            }
-            // si no lo dejo como esta, skip if
-        }
-    }
-    return update;
-}
-
-
 
 
 void Net::handleMessage(cMessage *msg) {
@@ -146,56 +90,35 @@ void Net::handleMessage(cMessage *msg) {
 }
 
 
+/* **** HANDLING FUNCTIONS **** */
 void Net::handleHello(Hello *hello){
-     int neighbour_gate = hello->getArrivalGate()->getIndex();
-        int senderID = hello->getSenderID();
+    int neighbour_gate = hello->getArrivalGate()->getIndex();
+    int senderID = hello->getSenderID();
 
-        routingTable[senderID] = {1, neighbour_gate};
-        sendTable();
-        delete hello;
+    RoutingEntry e;
+    e.cost = 1;
+    e.nextNode = senderID;
+
+    routingTable[senderID] = e;
+    gateTable[senderID] = neighbour_gate;
+    sendTable();
+    delete hello;
 }
 
+
 void Net::handleDistanceVector(DistanceVector *dv){
-    int gate = dv->getArrivalGate()->getIndex();
-        bool update = updateTable(dv, gate);
-        if (update){
-            sendTable();
-        }
-        delete dv;
 }
 
 void Net::handlePacket(Packet *pkt){
-    EV << "LLEGO Pkt DE LA APP" << endl;
-         // If this node is the final destination, send to App
-        if (pkt->getDestination() == id) {
-            EV << "PKT LLEGO A DESTINO " << endl;
-            simtime_t delayTime = simTime() - pkt->getCreationTime();
-            EV<< "Delay = " <<delayTime<<endl;
-            delay.record(delayTime);
-            hopCount.record(pkt->getHopCount());
-            cMessage *msg = (cMessage *) pkt;
-            send(msg, "toApp$o");
-        }
-         // If not, forward the packet to some else
-         // debemos chequear la tabla para saber para donde mandarlo
-        else {
-            pkt->setHopCount(pkt->getHopCount() + 1);
-            int destination = pkt->getDestination();
-            EV << "DEBEMOS REENVIAR PKT " << endl;
-            auto it = routingTable.find(destination);
-            if (it != routingTable.end() && it->second.nextNode != -1) {
-                EV << "DESTINATION SE ENCONTRABA EN LA ROUTING TABLE " << endl;
-                int sendTo = it->second.nextNode;
-                cMessage *msg = (cMessage *) pkt;
-                send(msg, "toLnk$o", sendTo);
-            }
-            else{
-                // si no tenemos una entrada para ese que hago?
-                // lo mano en sentido horario? lo borro?
-                EV << "PACKET NO ESTABA EN RT" << endl;
-                cMessage *msg = (cMessage *) pkt;
-                send(msg, "toLnk$o", 0);
-                //delete pkt;
-            }
-        }
-    }
+}
+
+/* **** DISTANCE TABLE FUNCS **** */
+
+// func para enviar la distance table a nodos vecinos
+void Net::sendTable(){
+}
+
+// func para actualizar la distance table cuando me llega una
+bool Net::updateTable(DistanceVector * dv){
+    return update;
+}

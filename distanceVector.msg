@@ -2,7 +2,7 @@ struct DistanceEntry {
     int destination;
     int cost;
 }
-message DistanceVector {
+message DistanceVectorMsg {
     int senderId;
-    DistanceEntry entries[];
+    DistanceEntry distanceVector[];
 }
