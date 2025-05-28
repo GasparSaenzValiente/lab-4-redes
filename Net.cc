@@ -60,7 +60,6 @@ void Net::initialize() {
     this->interfaces = gateSize("toLnk$o");
 
     routingTable[this->id] = {0, this->id};
-    gateTable[this->id] = -1;
 
     for(int i = 0; i < interfaces; i++){
         Hello * helloPkt = new Hello("helloMsg");
@@ -104,12 +103,13 @@ void Net::handleHello(Hello *hello){
 
     EV << "this id: " << this->id << endl;
     EV << "next node " << e.nextNode << ", cost " << e.cost << endl;
-    //sendTable();
+    sendTable();
     delete hello;
 }
 
 
 void Net::handleDistanceVector(DistanceVectorMsg *dv){
+    delete dv;
 }
 
 void Net::handlePacket(Packet *pkt){
@@ -139,8 +139,14 @@ void Net::sendTable(){
         distance_entry.destination = it->first;
         distance_entry.cost = it->second.cost;
         DVmsg->setDistanceVector(i, distance_entry);
-        i++
+        i++;
     }
+
+    for (auto it = gateTable.begin(); it != gateTable.end(); ++it){
+        EV << " it - second " << it->second <<endl;
+        send(DVmsg->dup(), "toLnk$o", it->second);
+    }
+    delete DVmsg;
 }
 
 // func para actualizar la distance table cuando me llega una
