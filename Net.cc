@@ -101,8 +101,6 @@ void Net::handleHello(Hello *hello){
     routingTable[senderID] = e;
     gateTable[senderID] = neighbour_gate;
 
-    EV << "this id: " << this->id << endl;
-    EV << "next node " << e.nextNode << ", cost " << e.cost << endl;
     sendTable();
     delete hello;
 }
@@ -154,7 +152,6 @@ void Net::sendTable(){
     }
 
     for (auto it = gateTable.begin(); it != gateTable.end(); ++it){
-        EV << " it - second " << it->second <<endl;
         if (it->second != -1){
             send(DVmsg->dup(), "toLnk$o", it->second);
         }
@@ -172,6 +169,8 @@ bool Net::updateTable(DistanceVectorMsg * dv){
 
         auto it = routingTable.find(de.destination);
         int total_cost = de.cost + 1;
+
+
 
         if (de.destination == this->id) {
             continue;
