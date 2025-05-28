@@ -118,8 +118,8 @@ void Net::handlePacket(Packet *pkt){
         send(pkt, "toApp$o");
     }
     else{
-        int nextNode = routingTable[destination];
-        int gate = gateTable[gate];
+        int nextNode = routingTable[destination].nextNode;
+        int gate = gateTable[nextNode];
         send(pkt, "toLnk$o", gate);
     }
 }
@@ -128,6 +128,19 @@ void Net::handlePacket(Packet *pkt){
 
 // func para enviar la distance table a nodos vecinos
 void Net::sendTable(){
+    DistanceVectorMsg *DVmsg = new DistanceVectorMsg("dv");;
+    DVmsg->setSenderId(this->id);
+    DVmsg->setDistanceVectorArraySize(routingTable.size());
+
+    int i = 0;
+    for (auto it = routingTable.begin(); it != routingTable.end(); ++it){
+        DistanceEntry distance_entry;
+
+        distance_entry.destination = it->first;
+        distance_entry.cost = it->second.cost;
+        DVmsg->setDistanceVector(i, distance_entry);
+        i++
+    }
 }
 
 // func para actualizar la distance table cuando me llega una
