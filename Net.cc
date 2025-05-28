@@ -60,7 +60,7 @@ void Net::initialize() {
     this->interfaces = gateSize("toLnk$o");
 
     routingTable[this->id] = {0, this->id};
-
+    gateTable[id] = -1;
     for(int i = 0; i < interfaces; i++){
         Hello * helloPkt = new Hello("helloMsg");
         helloPkt->setSenderID(id);
@@ -111,7 +111,7 @@ void Net::handleHello(Hello *hello){
 void Net::handleDistanceVector(DistanceVectorMsg *dv){
     bool DTableHasChanded = updateTable(dv);
     if (DTableHasChanded){
-        sendTable()
+        sendTable();
     }
     delete dv;
 }
@@ -122,9 +122,16 @@ void Net::handlePacket(Packet *pkt){
         send(pkt, "toApp$o");
     }
     else{
-        int nextNode = routingTable[destination].nextNode;
-        int gate = gateTable[nextNode];
-        send(pkt, "toLnk$o", gate);
+        auto it = routingTable.find(destination);
+        if (it != routingTable.end()){
+            int nextNode = it->second.nextNode;
+            int gate = gateTable[nextNode];
+            send(pkt, "toLnk$o", gate);
+        }
+        else{
+            sendTable();
+            delete pkt;
+        }
     }
 }
 
@@ -132,7 +139,7 @@ void Net::handlePacket(Packet *pkt){
 
 // func para enviar la distance table a nodos vecinos
 void Net::sendTable(){
-    DistanceVectorMsg *DVmsg = new DistanceVectorMsg("dv");;
+    DistanceVectorMsg *DVmsg = new DistanceVectorMsg("dv");
     DVmsg->setSenderId(this->id);
     DVmsg->setDistanceVectorArraySize(routingTable.size());
 
@@ -148,12 +155,55 @@ void Net::sendTable(){
 
     for (auto it = gateTable.begin(); it != gateTable.end(); ++it){
         EV << " it - second " << it->second <<endl;
-        send(DVmsg->dup(), "toLnk$o", it->second);
+        if (it->second != -1){
+            send(DVmsg->dup(), "toLnk$o", it->second);
+        }
     }
     delete DVmsg;
 }
 
 // func para actualizar la distance table cuando me llega una
 bool Net::updateTable(DistanceVectorMsg * dv){
-    return true;
+    bool updated = false;
+    int gateIn = dv->getArrivalGate()->getIndex();
+
+    for (int i = 0; i < dv->getDistanceVectorArraySize(); i++){
+        DistanceEntry de = dv->getDistanceVector(i);
+
+        auto it = routingTable.find(de.destination);
+        int total_cost = de.cost + 1;
+
+        if (de.destination == this->id) {
+            continue;
+        }
+        if (total_cost < 0 || (total_cost == 0 && de.destination != this->id)) {
+            continue;
+        }
+
+        if (it == routingTable.end()){
+            // es una nueva destination para nuestra routing table
+            RoutingEntry newRoutingEntry;
+            newRoutingEntry.cost = total_cost;
+            newRoutingEntry.nextNode = dv->getSenderId();
+            routingTable[de.destination] = newRoutingEntry;
+            gateTable[dv->getSenderId()] = gateIn;
+            updated = true;
+        }
+        else{
+            // destination ya estaba en nuestra routing table
+            RoutingEntry& existingEntry = it->second;
+            if (total_cost < existingEntry.cost){
+                existingEntry.cost = total_cost;
+                existingEntry.nextNode = dv->getSenderId();
+                gateTable[dv->getSenderId()] = gateIn;
+                updated = true;
+            }
+            else if( existingEntry.nextNode == dv->getSenderId() && total_cost > existingEntry.cost){
+                existingEntry.cost = total_cost;
+                updated = true;
+            }
+        }
+    }
+
+    return updated;
 }
