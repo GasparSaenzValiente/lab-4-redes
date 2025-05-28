@@ -109,6 +109,10 @@ void Net::handleHello(Hello *hello){
 
 
 void Net::handleDistanceVector(DistanceVectorMsg *dv){
+    bool DTableHasChanded = updateTable(dv);
+    if (DTableHasChanded){
+        sendTable()
+    }
     delete dv;
 }
 
