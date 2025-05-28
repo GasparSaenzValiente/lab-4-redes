@@ -37,9 +37,9 @@ protected:
     virtual void finish();
     virtual void handleMessage(cMessage *msg);
     virtual void sendTable();
-    virtual bool updateTable(DistanceVector * dv);
+    virtual bool updateTable(DistanceVectorMsg * dv);
     virtual void handlePacket(Packet *pkt);
-    virtual void handleDistanceVector(DistanceVector *dv);
+    virtual void handleDistanceVector(DistanceVectorMsg *dv);
     virtual void handleHello(Hello *helloPkt);
 };
 
@@ -79,7 +79,7 @@ void Net::handleMessage(cMessage *msg) {
         handlePacket(pkt);
     }
     // msg es un DistanceVector
-    else if (DistanceVector *dv = dynamic_cast<DistanceVector*>(msg)) {
+    else if (DistanceVectorMsg *dv = dynamic_cast<DistanceVectorMsg*>(msg)) {
         handleDistanceVector(dv);
 
     }
@@ -101,15 +101,27 @@ void Net::handleHello(Hello *hello){
 
     routingTable[senderID] = e;
     gateTable[senderID] = neighbour_gate;
-    sendTable();
+
+    EV << "this id: " << this->id << endl;
+    EV << "next node " << e.nextNode << ", cost " << e.cost << endl;
+    //sendTable();
     delete hello;
 }
 
 
-void Net::handleDistanceVector(DistanceVector *dv){
+void Net::handleDistanceVector(DistanceVectorMsg *dv){
 }
 
 void Net::handlePacket(Packet *pkt){
+    int destination = pkt->getDestination();
+    if (destination == this->getParentModule()->getIndex()) {
+        send(pkt, "toApp$o");
+    }
+    else{
+        int nextNode = routingTable[destination];
+        int gate = gateTable[gate];
+        send(pkt, "toLnk$o", gate);
+    }
 }
 
 /* **** DISTANCE TABLE FUNCS **** */
@@ -119,6 +131,6 @@ void Net::sendTable(){
 }
 
 // func para actualizar la distance table cuando me llega una
-bool Net::updateTable(DistanceVector * dv){
-    return update;
+bool Net::updateTable(DistanceVectorMsg * dv){
+    return true;
 }

@@ -477,23 +477,23 @@ void DistanceEntryDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object
     }
 }
 
-Register_Class(DistanceVector)
+Register_Class(DistanceVectorMsg)
 
-DistanceVector::DistanceVector(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
+DistanceVectorMsg::DistanceVectorMsg(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
 {
 }
 
-DistanceVector::DistanceVector(const DistanceVector& other) : ::omnetpp::cMessage(other)
+DistanceVectorMsg::DistanceVectorMsg(const DistanceVectorMsg& other) : ::omnetpp::cMessage(other)
 {
     copy(other);
 }
 
-DistanceVector::~DistanceVector()
+DistanceVectorMsg::~DistanceVectorMsg()
 {
-    delete [] this->entries;
+    delete [] this->distanceVector;
 }
 
-DistanceVector& DistanceVector::operator=(const DistanceVector& other)
+DistanceVectorMsg& DistanceVectorMsg::operator=(const DistanceVectorMsg& other)
 {
     if (this == &other) return *this;
     ::omnetpp::cMessage::operator=(other);
@@ -501,124 +501,124 @@ DistanceVector& DistanceVector::operator=(const DistanceVector& other)
     return *this;
 }
 
-void DistanceVector::copy(const DistanceVector& other)
+void DistanceVectorMsg::copy(const DistanceVectorMsg& other)
 {
     this->senderId = other.senderId;
-    delete [] this->entries;
-    this->entries = (other.entries_arraysize==0) ? nullptr : new DistanceEntry[other.entries_arraysize];
-    entries_arraysize = other.entries_arraysize;
-    for (size_t i = 0; i < entries_arraysize; i++) {
-        this->entries[i] = other.entries[i];
+    delete [] this->distanceVector;
+    this->distanceVector = (other.distanceVector_arraysize==0) ? nullptr : new DistanceEntry[other.distanceVector_arraysize];
+    distanceVector_arraysize = other.distanceVector_arraysize;
+    for (size_t i = 0; i < distanceVector_arraysize; i++) {
+        this->distanceVector[i] = other.distanceVector[i];
     }
 }
 
-void DistanceVector::parsimPack(omnetpp::cCommBuffer *b) const
+void DistanceVectorMsg::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cMessage::parsimPack(b);
     doParsimPacking(b,this->senderId);
-    b->pack(entries_arraysize);
-    doParsimArrayPacking(b,this->entries,entries_arraysize);
+    b->pack(distanceVector_arraysize);
+    doParsimArrayPacking(b,this->distanceVector,distanceVector_arraysize);
 }
 
-void DistanceVector::parsimUnpack(omnetpp::cCommBuffer *b)
+void DistanceVectorMsg::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cMessage::parsimUnpack(b);
     doParsimUnpacking(b,this->senderId);
-    delete [] this->entries;
-    b->unpack(entries_arraysize);
-    if (entries_arraysize == 0) {
-        this->entries = nullptr;
+    delete [] this->distanceVector;
+    b->unpack(distanceVector_arraysize);
+    if (distanceVector_arraysize == 0) {
+        this->distanceVector = nullptr;
     } else {
-        this->entries = new DistanceEntry[entries_arraysize];
-        doParsimArrayUnpacking(b,this->entries,entries_arraysize);
+        this->distanceVector = new DistanceEntry[distanceVector_arraysize];
+        doParsimArrayUnpacking(b,this->distanceVector,distanceVector_arraysize);
     }
 }
 
-int DistanceVector::getSenderId() const
+int DistanceVectorMsg::getSenderId() const
 {
     return this->senderId;
 }
 
-void DistanceVector::setSenderId(int senderId)
+void DistanceVectorMsg::setSenderId(int senderId)
 {
     this->senderId = senderId;
 }
 
-size_t DistanceVector::getEntriesArraySize() const
+size_t DistanceVectorMsg::getDistanceVectorArraySize() const
 {
-    return entries_arraysize;
+    return distanceVector_arraysize;
 }
 
-const DistanceEntry& DistanceVector::getEntries(size_t k) const
+const DistanceEntry& DistanceVectorMsg::getDistanceVector(size_t k) const
 {
-    if (k >= entries_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)entries_arraysize, (unsigned long)k);
-    return this->entries[k];
+    if (k >= distanceVector_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)distanceVector_arraysize, (unsigned long)k);
+    return this->distanceVector[k];
 }
 
-void DistanceVector::setEntriesArraySize(size_t newSize)
+void DistanceVectorMsg::setDistanceVectorArraySize(size_t newSize)
 {
-    DistanceEntry *entries2 = (newSize==0) ? nullptr : new DistanceEntry[newSize];
-    size_t minSize = entries_arraysize < newSize ? entries_arraysize : newSize;
+    DistanceEntry *distanceVector2 = (newSize==0) ? nullptr : new DistanceEntry[newSize];
+    size_t minSize = distanceVector_arraysize < newSize ? distanceVector_arraysize : newSize;
     for (size_t i = 0; i < minSize; i++)
-        entries2[i] = this->entries[i];
-    delete [] this->entries;
-    this->entries = entries2;
-    entries_arraysize = newSize;
+        distanceVector2[i] = this->distanceVector[i];
+    delete [] this->distanceVector;
+    this->distanceVector = distanceVector2;
+    distanceVector_arraysize = newSize;
 }
 
-void DistanceVector::setEntries(size_t k, const DistanceEntry& entries)
+void DistanceVectorMsg::setDistanceVector(size_t k, const DistanceEntry& distanceVector)
 {
-    if (k >= entries_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)entries_arraysize, (unsigned long)k);
-    this->entries[k] = entries;
+    if (k >= distanceVector_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)distanceVector_arraysize, (unsigned long)k);
+    this->distanceVector[k] = distanceVector;
 }
 
-void DistanceVector::insertEntries(size_t k, const DistanceEntry& entries)
+void DistanceVectorMsg::insertDistanceVector(size_t k, const DistanceEntry& distanceVector)
 {
-    if (k > entries_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)entries_arraysize, (unsigned long)k);
-    size_t newSize = entries_arraysize + 1;
-    DistanceEntry *entries2 = new DistanceEntry[newSize];
+    if (k > distanceVector_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)distanceVector_arraysize, (unsigned long)k);
+    size_t newSize = distanceVector_arraysize + 1;
+    DistanceEntry *distanceVector2 = new DistanceEntry[newSize];
     size_t i;
     for (i = 0; i < k; i++)
-        entries2[i] = this->entries[i];
-    entries2[k] = entries;
+        distanceVector2[i] = this->distanceVector[i];
+    distanceVector2[k] = distanceVector;
     for (i = k + 1; i < newSize; i++)
-        entries2[i] = this->entries[i-1];
-    delete [] this->entries;
-    this->entries = entries2;
-    entries_arraysize = newSize;
+        distanceVector2[i] = this->distanceVector[i-1];
+    delete [] this->distanceVector;
+    this->distanceVector = distanceVector2;
+    distanceVector_arraysize = newSize;
 }
 
-void DistanceVector::appendEntries(const DistanceEntry& entries)
+void DistanceVectorMsg::appendDistanceVector(const DistanceEntry& distanceVector)
 {
-    insertEntries(entries_arraysize, entries);
+    insertDistanceVector(distanceVector_arraysize, distanceVector);
 }
 
-void DistanceVector::eraseEntries(size_t k)
+void DistanceVectorMsg::eraseDistanceVector(size_t k)
 {
-    if (k >= entries_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)entries_arraysize, (unsigned long)k);
-    size_t newSize = entries_arraysize - 1;
-    DistanceEntry *entries2 = (newSize == 0) ? nullptr : new DistanceEntry[newSize];
+    if (k >= distanceVector_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)distanceVector_arraysize, (unsigned long)k);
+    size_t newSize = distanceVector_arraysize - 1;
+    DistanceEntry *distanceVector2 = (newSize == 0) ? nullptr : new DistanceEntry[newSize];
     size_t i;
     for (i = 0; i < k; i++)
-        entries2[i] = this->entries[i];
+        distanceVector2[i] = this->distanceVector[i];
     for (i = k; i < newSize; i++)
-        entries2[i] = this->entries[i+1];
-    delete [] this->entries;
-    this->entries = entries2;
-    entries_arraysize = newSize;
+        distanceVector2[i] = this->distanceVector[i+1];
+    delete [] this->distanceVector;
+    this->distanceVector = distanceVector2;
+    distanceVector_arraysize = newSize;
 }
 
-class DistanceVectorDescriptor : public omnetpp::cClassDescriptor
+class DistanceVectorMsgDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
     enum FieldConstants {
         FIELD_senderId,
-        FIELD_entries,
+        FIELD_distanceVector,
     };
   public:
-    DistanceVectorDescriptor();
-    virtual ~DistanceVectorDescriptor();
+    DistanceVectorMsgDescriptor();
+    virtual ~DistanceVectorMsgDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -644,24 +644,24 @@ class DistanceVectorDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(DistanceVectorDescriptor)
+Register_ClassDescriptor(DistanceVectorMsgDescriptor)
 
-DistanceVectorDescriptor::DistanceVectorDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(DistanceVector)), "omnetpp::cMessage")
+DistanceVectorMsgDescriptor::DistanceVectorMsgDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(DistanceVectorMsg)), "omnetpp::cMessage")
 {
     propertyNames = nullptr;
 }
 
-DistanceVectorDescriptor::~DistanceVectorDescriptor()
+DistanceVectorMsgDescriptor::~DistanceVectorMsgDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool DistanceVectorDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool DistanceVectorMsgDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<DistanceVector *>(obj)!=nullptr;
+    return dynamic_cast<DistanceVectorMsg *>(obj)!=nullptr;
 }
 
-const char **DistanceVectorDescriptor::getPropertyNames() const
+const char **DistanceVectorMsgDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -672,19 +672,19 @@ const char **DistanceVectorDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *DistanceVectorDescriptor::getProperty(const char *propertyName) const
+const char *DistanceVectorMsgDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int DistanceVectorDescriptor::getFieldCount() const
+int DistanceVectorMsgDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? 2+base->getFieldCount() : 2;
 }
 
-unsigned int DistanceVectorDescriptor::getFieldTypeFlags(int field) const
+unsigned int DistanceVectorMsgDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -694,12 +694,12 @@ unsigned int DistanceVectorDescriptor::getFieldTypeFlags(int field) const
     }
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,    // FIELD_senderId
-        FD_ISARRAY | FD_ISCOMPOUND | FD_ISRESIZABLE,    // FIELD_entries
+        FD_ISARRAY | FD_ISCOMPOUND | FD_ISRESIZABLE,    // FIELD_distanceVector
     };
     return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
 }
 
-const char *DistanceVectorDescriptor::getFieldName(int field) const
+const char *DistanceVectorMsgDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -709,21 +709,21 @@ const char *DistanceVectorDescriptor::getFieldName(int field) const
     }
     static const char *fieldNames[] = {
         "senderId",
-        "entries",
+        "distanceVector",
     };
     return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
 }
 
-int DistanceVectorDescriptor::findField(const char *fieldName) const
+int DistanceVectorMsgDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
     if (strcmp(fieldName, "senderId") == 0) return baseIndex + 0;
-    if (strcmp(fieldName, "entries") == 0) return baseIndex + 1;
+    if (strcmp(fieldName, "distanceVector") == 0) return baseIndex + 1;
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *DistanceVectorDescriptor::getFieldTypeString(int field) const
+const char *DistanceVectorMsgDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -733,12 +733,12 @@ const char *DistanceVectorDescriptor::getFieldTypeString(int field) const
     }
     static const char *fieldTypeStrings[] = {
         "int",    // FIELD_senderId
-        "DistanceEntry",    // FIELD_entries
+        "DistanceEntry",    // FIELD_distanceVector
     };
     return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **DistanceVectorDescriptor::getFieldPropertyNames(int field) const
+const char **DistanceVectorMsgDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -751,7 +751,7 @@ const char **DistanceVectorDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *DistanceVectorDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *DistanceVectorMsgDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -764,7 +764,7 @@ const char *DistanceVectorDescriptor::getFieldProperty(int field, const char *pr
     }
 }
 
-int DistanceVectorDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int DistanceVectorMsgDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -772,14 +772,14 @@ int DistanceVectorDescriptor::getFieldArraySize(omnetpp::any_ptr object, int fie
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    DistanceVector *pp = omnetpp::fromAnyPtr<DistanceVector>(object); (void)pp;
+    DistanceVectorMsg *pp = omnetpp::fromAnyPtr<DistanceVectorMsg>(object); (void)pp;
     switch (field) {
-        case FIELD_entries: return pp->getEntriesArraySize();
+        case FIELD_distanceVector: return pp->getDistanceVectorArraySize();
         default: return 0;
     }
 }
 
-void DistanceVectorDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void DistanceVectorMsgDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -789,14 +789,14 @@ void DistanceVectorDescriptor::setFieldArraySize(omnetpp::any_ptr object, int fi
         }
         field -= base->getFieldCount();
     }
-    DistanceVector *pp = omnetpp::fromAnyPtr<DistanceVector>(object); (void)pp;
+    DistanceVectorMsg *pp = omnetpp::fromAnyPtr<DistanceVectorMsg>(object); (void)pp;
     switch (field) {
-        case FIELD_entries: pp->setEntriesArraySize(size); break;
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'DistanceVector'", field);
+        case FIELD_distanceVector: pp->setDistanceVectorArraySize(size); break;
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'DistanceVectorMsg'", field);
     }
 }
 
-const char *DistanceVectorDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *DistanceVectorMsgDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -804,13 +804,13 @@ const char *DistanceVectorDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    DistanceVector *pp = omnetpp::fromAnyPtr<DistanceVector>(object); (void)pp;
+    DistanceVectorMsg *pp = omnetpp::fromAnyPtr<DistanceVectorMsg>(object); (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string DistanceVectorDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string DistanceVectorMsgDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -818,15 +818,15 @@ std::string DistanceVectorDescriptor::getFieldValueAsString(omnetpp::any_ptr obj
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    DistanceVector *pp = omnetpp::fromAnyPtr<DistanceVector>(object); (void)pp;
+    DistanceVectorMsg *pp = omnetpp::fromAnyPtr<DistanceVectorMsg>(object); (void)pp;
     switch (field) {
         case FIELD_senderId: return long2string(pp->getSenderId());
-        case FIELD_entries: return "";
+        case FIELD_distanceVector: return "";
         default: return "";
     }
 }
 
-void DistanceVectorDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void DistanceVectorMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -836,14 +836,14 @@ void DistanceVectorDescriptor::setFieldValueAsString(omnetpp::any_ptr object, in
         }
         field -= base->getFieldCount();
     }
-    DistanceVector *pp = omnetpp::fromAnyPtr<DistanceVector>(object); (void)pp;
+    DistanceVectorMsg *pp = omnetpp::fromAnyPtr<DistanceVectorMsg>(object); (void)pp;
     switch (field) {
         case FIELD_senderId: pp->setSenderId(string2long(value)); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DistanceVector'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DistanceVectorMsg'", field);
     }
 }
 
-omnetpp::cValue DistanceVectorDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue DistanceVectorMsgDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -851,15 +851,15 @@ omnetpp::cValue DistanceVectorDescriptor::getFieldValue(omnetpp::any_ptr object,
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    DistanceVector *pp = omnetpp::fromAnyPtr<DistanceVector>(object); (void)pp;
+    DistanceVectorMsg *pp = omnetpp::fromAnyPtr<DistanceVectorMsg>(object); (void)pp;
     switch (field) {
         case FIELD_senderId: return pp->getSenderId();
-        case FIELD_entries: return omnetpp::toAnyPtr(&pp->getEntries(i)); break;
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'DistanceVector' as cValue -- field index out of range?", field);
+        case FIELD_distanceVector: return omnetpp::toAnyPtr(&pp->getDistanceVector(i)); break;
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'DistanceVectorMsg' as cValue -- field index out of range?", field);
     }
 }
 
-void DistanceVectorDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void DistanceVectorMsgDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -869,14 +869,14 @@ void DistanceVectorDescriptor::setFieldValue(omnetpp::any_ptr object, int field,
         }
         field -= base->getFieldCount();
     }
-    DistanceVector *pp = omnetpp::fromAnyPtr<DistanceVector>(object); (void)pp;
+    DistanceVectorMsg *pp = omnetpp::fromAnyPtr<DistanceVectorMsg>(object); (void)pp;
     switch (field) {
         case FIELD_senderId: pp->setSenderId(omnetpp::checked_int_cast<int>(value.intValue())); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DistanceVector'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DistanceVectorMsg'", field);
     }
 }
 
-const char *DistanceVectorDescriptor::getFieldStructName(int field) const
+const char *DistanceVectorMsgDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -885,12 +885,12 @@ const char *DistanceVectorDescriptor::getFieldStructName(int field) const
         field -= base->getFieldCount();
     }
     switch (field) {
-        case FIELD_entries: return omnetpp::opp_typename(typeid(DistanceEntry));
+        case FIELD_distanceVector: return omnetpp::opp_typename(typeid(DistanceEntry));
         default: return nullptr;
     };
 }
 
-omnetpp::any_ptr DistanceVectorDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr DistanceVectorMsgDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -898,14 +898,14 @@ omnetpp::any_ptr DistanceVectorDescriptor::getFieldStructValuePointer(omnetpp::a
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    DistanceVector *pp = omnetpp::fromAnyPtr<DistanceVector>(object); (void)pp;
+    DistanceVectorMsg *pp = omnetpp::fromAnyPtr<DistanceVectorMsg>(object); (void)pp;
     switch (field) {
-        case FIELD_entries: return omnetpp::toAnyPtr(&pp->getEntries(i)); break;
+        case FIELD_distanceVector: return omnetpp::toAnyPtr(&pp->getDistanceVector(i)); break;
         default: return omnetpp::any_ptr(nullptr);
     }
 }
 
-void DistanceVectorDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void DistanceVectorMsgDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -915,9 +915,9 @@ void DistanceVectorDescriptor::setFieldStructValuePointer(omnetpp::any_ptr objec
         }
         field -= base->getFieldCount();
     }
-    DistanceVector *pp = omnetpp::fromAnyPtr<DistanceVector>(object); (void)pp;
+    DistanceVectorMsg *pp = omnetpp::fromAnyPtr<DistanceVectorMsg>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DistanceVector'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'DistanceVectorMsg'", field);
     }
 }
 

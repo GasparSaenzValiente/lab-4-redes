@@ -17,7 +17,7 @@
 #endif
 
 struct DistanceEntry;
-class DistanceVector;
+class DistanceVectorMsg;
 /**
  * Struct generated from distanceVector.msg:1 by opp_msgtool.
  */
@@ -38,58 +38,58 @@ inline void doParsimUnpacking(omnetpp::cCommBuffer *b, DistanceEntry& obj) { __d
 /**
  * Class generated from <tt>distanceVector.msg:5</tt> by opp_msgtool.
  * <pre>
- * message DistanceVector
+ * message DistanceVectorMsg
  * {
  *     int senderId;
- *     DistanceEntry entries[];
+ *     DistanceEntry distanceVector[];
  * }
  * </pre>
  */
-class DistanceVector : public ::omnetpp::cMessage
+class DistanceVectorMsg : public ::omnetpp::cMessage
 {
   protected:
     int senderId = 0;
-    DistanceEntry *entries = nullptr;
-    size_t entries_arraysize = 0;
+    DistanceEntry *distanceVector = nullptr;
+    size_t distanceVector_arraysize = 0;
 
   private:
-    void copy(const DistanceVector& other);
+    void copy(const DistanceVectorMsg& other);
 
   protected:
-    bool operator==(const DistanceVector&) = delete;
+    bool operator==(const DistanceVectorMsg&) = delete;
 
   public:
-    DistanceVector(const char *name=nullptr, short kind=0);
-    DistanceVector(const DistanceVector& other);
-    virtual ~DistanceVector();
-    DistanceVector& operator=(const DistanceVector& other);
-    virtual DistanceVector *dup() const override {return new DistanceVector(*this);}
+    DistanceVectorMsg(const char *name=nullptr, short kind=0);
+    DistanceVectorMsg(const DistanceVectorMsg& other);
+    virtual ~DistanceVectorMsg();
+    DistanceVectorMsg& operator=(const DistanceVectorMsg& other);
+    virtual DistanceVectorMsg *dup() const override {return new DistanceVectorMsg(*this);}
     virtual void parsimPack(omnetpp::cCommBuffer *b) const override;
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     virtual int getSenderId() const;
     virtual void setSenderId(int senderId);
 
-    virtual void setEntriesArraySize(size_t size);
-    virtual size_t getEntriesArraySize() const;
-    virtual const DistanceEntry& getEntries(size_t k) const;
-    virtual DistanceEntry& getEntriesForUpdate(size_t k) { return const_cast<DistanceEntry&>(const_cast<DistanceVector*>(this)->getEntries(k));}
-    virtual void setEntries(size_t k, const DistanceEntry& entries);
-    virtual void insertEntries(size_t k, const DistanceEntry& entries);
-    [[deprecated]] void insertEntries(const DistanceEntry& entries) {appendEntries(entries);}
-    virtual void appendEntries(const DistanceEntry& entries);
-    virtual void eraseEntries(size_t k);
+    virtual void setDistanceVectorArraySize(size_t size);
+    virtual size_t getDistanceVectorArraySize() const;
+    virtual const DistanceEntry& getDistanceVector(size_t k) const;
+    virtual DistanceEntry& getDistanceVectorForUpdate(size_t k) { return const_cast<DistanceEntry&>(const_cast<DistanceVectorMsg*>(this)->getDistanceVector(k));}
+    virtual void setDistanceVector(size_t k, const DistanceEntry& distanceVector);
+    virtual void insertDistanceVector(size_t k, const DistanceEntry& distanceVector);
+    [[deprecated]] void insertDistanceVector(const DistanceEntry& distanceVector) {appendDistanceVector(distanceVector);}
+    virtual void appendDistanceVector(const DistanceEntry& distanceVector);
+    virtual void eraseDistanceVector(size_t k);
 };
 
-inline void doParsimPacking(omnetpp::cCommBuffer *b, const DistanceVector& obj) {obj.parsimPack(b);}
-inline void doParsimUnpacking(omnetpp::cCommBuffer *b, DistanceVector& obj) {obj.parsimUnpack(b);}
+inline void doParsimPacking(omnetpp::cCommBuffer *b, const DistanceVectorMsg& obj) {obj.parsimPack(b);}
+inline void doParsimUnpacking(omnetpp::cCommBuffer *b, DistanceVectorMsg& obj) {obj.parsimUnpack(b);}
 
 
 namespace omnetpp {
 
 inline any_ptr toAnyPtr(const DistanceEntry *p) {return any_ptr(p);}
 template<> inline DistanceEntry *fromAnyPtr(any_ptr ptr) { return ptr.get<DistanceEntry>(); }
-template<> inline DistanceVector *fromAnyPtr(any_ptr ptr) { return check_and_cast<DistanceVector*>(ptr.get<cObject>()); }
+template<> inline DistanceVectorMsg *fromAnyPtr(any_ptr ptr) { return check_and_cast<DistanceVectorMsg*>(ptr.get<cObject>()); }
 
 }  // namespace omnetpp
 
