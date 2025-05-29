@@ -72,6 +72,12 @@ void Lnk::handleEndServiceEvent() {
     cMessage* msg = dynamic_cast<cMessage*>(buffer.pop());
     bufferSizeVector.record(buffer.getLength());
 
+    // networkStar tiene Node.toNod[] sin conectar, lo que da error al querer mandar un msg
+    if (!gate("toOut$o")->getNextGate()->isConnected()) {
+        delete msg;
+        return;
+    }
+
     send(msg, "toOut$o");
 
     simtime_t serviceTime;
