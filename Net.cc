@@ -127,7 +127,6 @@ void Net::handlePacket(Packet *pkt){
             send(pkt, "toLnk$o", gate);
         }
         else{
-            sendTable();
             delete pkt;
         }
     }
