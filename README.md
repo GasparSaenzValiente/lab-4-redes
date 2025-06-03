@@ -32,3 +32,20 @@ Para las simulaciones de ambos casos, los parametros que se compartiran serán:
 * **Tiempo de simulación**: de 200 s.
 * **Tamaño de paquete** : `packetByteSize = 125000` (equivalente a 1 Mb).
 * **Nodo de destino**: el nodo 5.
+
+## Análisis - primera parte
+### Caso 1 y Caso 2
+
+![delay ambos casos](/images/graph/delay-primera-parte.png)
+
+![buffer caso 1](/images/graph/buffer-caso1-parte1.png)
+
+![buffer caso 2](/images/graph/buffer-caso2-parte1.png)
+
+![buffers casos 1 y 2](/images/graph/buffer-parte1-nodo6.png)
+
+## Tarea de diseño
+
+## Análisis - segunda parte
+
+## Conclusión
