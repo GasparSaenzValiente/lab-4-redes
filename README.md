@@ -52,6 +52,10 @@ Para entender esta diferencia, observaremos el uso de los *buffers* del Caso 2. 
 Recordemos que en ambos casos la ruta que siguen los paquetes en el anillo es en sentido horario, sin importar si es o no la ruta más eficiente para que circulen. Al ser el objetivo de todos los paquetes el ser recibidos por el nodo 5, los nodos más alejados del circuito, o sea los más próximos en sentido horario (siendo los nodos 4, 3 y 2) van a generar un tráfico innecesario en el resto de nodos que median con el mismo. Una mejora a este sistema es lograr que cada nodo "sepa" hacia que sentido enviar el paquete buscando la ruta más corta a destino. En proximas secciones propondremos una posible solución a este problema. 
 
 <!-- ![buffers casos 1 y 2](/images/graph/buffer-parte1-nodo6.png) -->
+### Equilibrio en el Caso 2
+Luego de probar intervalos de generación, observamos que la red alcanza un comportamiento más estable en cuanto al retardo de entrega cuando el `interArrivalTime`(variable que determina la generación de paquetes) se reduce a 0.1 s o tiempos inferiores. Esto, de todas formas, no mejora el *delay* final de la simulación. 
+A continuación se muestra el gráfico que muestra la evolución del delay en este caso:
+![delay-0.1-caso2](/images/graph/delay-caso2-0.1.png)
 
 ## Tarea de diseño
 
